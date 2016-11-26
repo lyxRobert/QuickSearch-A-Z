@@ -3,23 +3,18 @@ package lyx.robert.quicksearch.activities;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.SystemClock;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.OvershootInterpolator;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -30,8 +25,8 @@ import lyx.robert.quicksearch.adapter.ContactAdapter;
 import lyx.robert.quicksearch.utils.PinYinUtil;
 import lyx.robert.quicksearch.view.SideLetterBar;
 import lyx.robert.quicksearch.R;
-import lyx.robert.quicksearch.Bean.SortToken;
-import lyx.robert.quicksearch.utils.SwipeLayoutManager;
+import lyx.robert.quicksearch.Bean.PinYinStyle;
+import lyx.robert.quicksearch.utils.SwipeManager;
 import lyx.robert.quicksearch.adapter.AlphabetAdp;
 import lyx.robert.quicksearch.view.ClearEditText;
 
@@ -47,6 +42,7 @@ public class MainActivity extends Activity {
 	RelativeLayout rel_notice;
 	ContactAdapter adapter ;
 	private String[] data = new String[] {
+			"15129372345","15129372334","15129372335","15129372343","15129372347","151293723423",
 			//A
 			"安先生", "敖先生", "艾先生", "爱先生",
 			//B
@@ -95,12 +91,12 @@ public class MainActivity extends Activity {
 			"翟先生", "张先生", "章先生","赵先生", "甄先生", "曾先生","周先生", "郑先生", "祝先生",
 	        };
 
-	private ArrayList<ContactBean> friends;
+	private ArrayList<ContactBean> contactList;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		friends = fillList();
+		contactList = dataList();
 		//2.对数据进行排序
 		initView();
 		initEvent();
@@ -132,22 +128,29 @@ public class MainActivity extends Activity {
 				alphabetList.clear();
 				ViewPropertyAnimator.animate(rel_notice).alpha(1f).setDuration(0).start();
 				//根据当前触摸的字母，去集合中找那个item的首字母和letter一样，然后将对应的item放到屏幕顶端
-				for (int i = 0; i < friends.size(); i++) {
-					String firstWord = friends.get(i).getPinyin().charAt(0)+"";
-					if(letter.equals(firstWord)){
+				for (int i = 0; i < contactList.size(); i++) {
+					String firstAlphabet = contactList.get(i).getPinyin().charAt(0)+"";
+					if(letter.equals(firstAlphabet)){
 						lv_contact.setSelection(i);
 						rel_notice.setVisibility(View.VISIBLE);
 						break;
 					}
+					if(letter.equals("#")){
+						lv_contact.setSelection(0);
+						rel_notice.setVisibility(View.GONE);
+					}
 				}
-				for (int i = 0; i < friends.size(); i++) {
-					String firstWord = friends.get(i).getPinyin().toString().trim().charAt(0)+"";
+				for (int i = 0; i < contactList.size(); i++) {
+					String firstAlphabet = contactList.get(i).getPinyin().toString().trim().charAt(0)+"";
 
-					if(letter.equals(firstWord)){
+					if(letter.equals(firstAlphabet)){
 						//说明找到了，那么应该讲当前的item放到屏幕顶端
 						tv_notice.setText(letter);
-						alphabetList.add(String.valueOf(friends.get(i).getName().trim().charAt(0)));
+						if(!alphabetList.contains(String.valueOf(contactList.get(i).getName().trim().charAt(0)))){
+							alphabetList.add(String.valueOf(contactList.get(i).getName().trim().charAt(0)));
+						}
 					}
+
 				}
 				showCurrentWord(letter);
 				//显示当前触摸的字母
@@ -162,7 +165,7 @@ public class MainActivity extends Activity {
 			public void onScrollStateChanged(AbsListView absListView, int scrollState) {
 				if(scrollState== AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL){
 					//如果垂直滑动，则需要关闭已经打开的layout
-					SwipeLayoutManager.getInstance().closeCurrentLayout();
+					SwipeManager.getInstance().closeCurrentLayout();
 				}
 
 			}
@@ -171,9 +174,9 @@ public class MainActivity extends Activity {
 			public void onScroll(AbsListView absListView, int firstVisibleItem,
 								 int visibleItemCount, int totalItemCount) {
 				int pos = lv_contact.getFirstVisiblePosition();
-				if (friends.size()>0){
+				if (contactList.size()>0){
 					tv_alphabet.setVisibility(View.VISIBLE);
-					String text = friends.get(pos).getPinyin().charAt(0)+"";
+					String text = contactList.get(pos).getPinyin().charAt(0)+"";
 					Pattern p = Pattern.compile("[0-9]*");
 					Matcher m1 = p.matcher(text);
 					if(m1.matches()){
@@ -209,8 +212,8 @@ public class MainActivity extends Activity {
 			public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
 				String alphabet = alphabetList.get(position).trim();
 				setIsVisiable();
-				for (int i = 0;i<friends.size();i++){
-					if (alphabet.equals(String.valueOf(friends.get(i).getName().trim().charAt(0)))){
+				for (int i = 0;i<contactList.size();i++){
+					if (alphabet.equals(String.valueOf(contactList.get(i).getName().trim().charAt(0)))){
 						int pos = i%lv_contact.getChildCount();
 						int childCount = lv_contact.getChildCount();
 						if(position==0&&pos-position==1||childCount-pos==1){
@@ -227,7 +230,7 @@ public class MainActivity extends Activity {
 	private void initData() {
 
 		//3.设置Adapter
-		adapter = new ContactAdapter(this,friends);
+		adapter = new ContactAdapter(this,contactList);
 		lv_contact.setAdapter(adapter);
 		alphabetList = new ArrayList<>();
 	}
@@ -246,13 +249,13 @@ public class MainActivity extends Activity {
 			}
 		}, 4000);
 }
-	private ArrayList <ContactBean> fillList() {
+	private ArrayList <ContactBean> dataList() {
 		// 虚拟数据
 		ArrayList <ContactBean> mSortList = new ArrayList<ContactBean>();
 		for(int i=0;i<data.length;i++){
-			ContactBean friend = new ContactBean(data[i]);
-			friend.sortToken = parseSortKey(data[i]);
-			mSortList.add(friend);
+			ContactBean bean = new ContactBean(data[i]);
+			bean.pinYinStyle = parsePinYinStyle(data[i]);
+			mSortList.add(bean);
 		}
 		Collections.sort(mSortList);
 		return mSortList;
@@ -262,43 +265,43 @@ public class MainActivity extends Activity {
 		// 虚拟数据
 		if (TextUtils.isEmpty(str)){
 			sideLetterBar.setVisibility(View.VISIBLE);
-			filterDateList = fillList();
+			filterDateList = dataList();
 		}else {
 			filterDateList.clear();
 			sideLetterBar.setVisibility(View.GONE);
-			for(ContactBean sortModel : fillList()){
-				String name = sortModel.getName();
+			for(ContactBean contactBean : dataList()){
+				String name = contactBean.getName();
 				Pattern p = Pattern.compile("[\u4e00-\u9fa5]");
 				Matcher m = p.matcher(str);
 				if(m.matches()){
 					str = PinYinUtil.getPinyin(str);
 				}
-				if(PinYinUtil.getPinyin(name).contains(str.toUpperCase())|| sortModel.sortToken.simpleSpell.toUpperCase().contains(str.toUpperCase())
-						|| sortModel.sortToken.wholeSpell.toUpperCase().contains(str.toUpperCase())){
-					filterDateList.add(sortModel);
+				if(PinYinUtil.getPinyin(name).contains(str.toUpperCase())|| contactBean.pinYinStyle.briefnessSpell.toUpperCase().contains(str.toUpperCase())
+						|| contactBean.pinYinStyle.completeSpell.toUpperCase().contains(str.toUpperCase())){
+					filterDateList.add(contactBean);
 				}
 			}
 		}
-		friends = filterDateList;
+		contactList = filterDateList;
 		adapter = new ContactAdapter(this,filterDateList);
 		lv_contact.setAdapter(adapter);
 		adapter.notifyDataSetChanged();
 	}
-	public SortToken parseSortKey(String sortKey) {
-		SortToken token = new SortToken();
-		if (sortKey != null && sortKey.length() > 0) {
+	public PinYinStyle parsePinYinStyle(String content) {
+		PinYinStyle pinYinStyle = new PinYinStyle();
+		if (content != null && content.length() > 0) {
 			//其中包含的中文字符
-			String[] enStrs = new String[sortKey.length()];
-			for (int i=0;i<sortKey.length();i++){
-				enStrs[i] = PinYinUtil.getPinyin(String.valueOf(sortKey.charAt(i)));
+			String[] enStrs = new String[content.length()];
+			for (int i=0;i<content.length();i++){
+				enStrs[i] = PinYinUtil.getPinyin(String.valueOf(content.charAt(i)));
 			}
 			for (int i = 0, length = enStrs.length; i < length; i++) {
 				if (enStrs[i].length() > 0) {
 					//拼接简拼
-					token.simpleSpell += enStrs[i].charAt(0);
+					pinYinStyle.briefnessSpell += enStrs[i].charAt(0);
 				}
 			}
 		}
-		return token;
+		return pinYinStyle;
 	}
 }

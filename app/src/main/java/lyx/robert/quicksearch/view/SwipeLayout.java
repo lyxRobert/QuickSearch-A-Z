@@ -8,16 +8,16 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import lyx.robert.quicksearch.utils.SwipeLayoutManager;
+import lyx.robert.quicksearch.utils.SwipeManager;
 
 public class SwipeLayout extends FrameLayout {
 
-	private View contentView;// item内容区域的view
-	private View deleteView;// delete区域的view
-	private int deleteHeight;// delete区域的高度
-	private int deleteWidth;// delete区域的宽度
-	private int contentWidth;// content区域的宽度
-	private ViewDragHelper viewDragHelper;
+	private View contentView;// 默认显示内容的view
+	private View slipView;// 侧滑控件的view
+	private int slipHeight;//  侧滑控件的高度
+	private int slipWidth;// 侧滑控件的宽度
+	private int contentWidth;// 默认显示内容的宽度
+	private ViewDragHelper mDrag;
 
 	public SwipeLayout(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
@@ -38,44 +38,44 @@ public class SwipeLayout extends FrameLayout {
 		Open,Close;
 	}
 	
-	private SwipeState currentState = SwipeState.Close;//当前默认是关闭状态
+	private SwipeState currentState = SwipeState.Close;//默认是关闭状态
 	
 	private void init() {
-		viewDragHelper = ViewDragHelper.create(this, callback);
+		//使用静态方法构造ViewDragHelper,其中需要传入一个ViewDragHelper.Callback回调对象.
+		mDrag = ViewDragHelper.create(this, callback);
 	}
 
 	@Override
 	protected void onFinishInflate() {
 		super.onFinishInflate();
 		contentView = getChildAt(0);
-		deleteView = getChildAt(1);
+		slipView = getChildAt(1);
 	}
 
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
-		deleteHeight = deleteView.getMeasuredHeight();
-		deleteWidth = deleteView.getMeasuredWidth();
+		slipHeight = slipView.getMeasuredHeight();
+		slipWidth = slipView.getMeasuredWidth();
 		contentWidth = contentView.getMeasuredWidth();
 	}
 
 	@Override
 	protected void onLayout(boolean changed, int left, int top, int right,
 			int bottom) {
-		// super.onLayout(changed, left, top, right, bottom);
-		contentView.layout(0, 0, contentWidth, deleteHeight);
-		deleteView.layout(contentView.getRight(), 0, contentView.getRight()
-				+ deleteWidth, deleteHeight);
+		contentView.layout(0, 0, contentWidth, slipHeight);
+		slipView.layout(contentView.getRight(), 0, contentView.getRight()
+				+ slipWidth, slipHeight);
 	}
-	
+	//重写此方法回调ViewDragHelper中对应的方法
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
-		boolean result = viewDragHelper.shouldInterceptTouchEvent(ev);
+		boolean result = mDrag.shouldInterceptTouchEvent(ev);
 		
 		//如果当前有打开的，则需要直接拦截，交给onTouch处理
-		if(!SwipeLayoutManager.getInstance().isShouldSwipe(this)){
+		if(!SwipeManager.getInstance().isSwipe(this)){
 			//先关闭已经打开的layout
-			SwipeLayoutManager.getInstance().closeCurrentLayout();
+			SwipeManager.getInstance().closeCurrentLayout();
 			
 			result = true;
 		}
@@ -84,10 +84,11 @@ public class SwipeLayout extends FrameLayout {
 	}
 	
 	private float downX,downY;
+	//重写此方法回调ViewDragHelper中对应的方法.
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		//如果当前有打开的，则下面的逻辑不能执行
-		if(!SwipeLayoutManager.getInstance().isShouldSwipe(this)){
+		//如果当前有打开的，调用requestDisallowInterceptTouchEvent进行拦截，触摸事件的逻辑将不会执行
+		if(!SwipeManager.getInstance().isSwipe(this)){
 			requestDisallowInterceptTouchEvent(true);
 			return true;
 		}
@@ -115,39 +116,43 @@ public class SwipeLayout extends FrameLayout {
 			
 			break;
 		}
-		viewDragHelper.processTouchEvent(event);
+		mDrag.processTouchEvent(event);
 		return true;
 	}
 
 	private ViewDragHelper.Callback callback = new ViewDragHelper.Callback() {
+		//返回值就是当前捕捉到的也就是你当前拖拽的某个子View
 		@Override
 		public boolean tryCaptureView(View child, int pointerId) {
-			return child==contentView||child==deleteView;
+			return child==contentView||child==slipView;
 		}
+		//返回值是可以水平拖拽的范围
 		@Override
 		public int getViewHorizontalDragRange(View child) {
-			return deleteWidth;
+			return slipWidth;
 		}
+		//手指触摸移动时实时回调, left表示要移动到的x位置,dx表示移动的距离
 		@Override
 		public int clampViewPositionHorizontal(View child, int left, int dx) {
 			if(child==contentView){
 				if(left>0)left = 0;
-				if(left<-deleteWidth)left = -deleteWidth;
-			}else if (child==deleteView) {
+				if(left<-slipWidth)left = -slipWidth;
+			}else if (child==slipView) {
 				if(left>contentWidth)left = contentWidth;
-				if(left<(contentWidth-deleteWidth))left = contentWidth-deleteWidth;
+				if(left<(contentWidth-slipWidth))left = contentWidth-slipWidth;
 			}
 			return left;
 		}
+		//拖拽的子View完全挪出屏幕则防止过度绘制
 		@Override
 		public void onViewPositionChanged(View changedView, int left, int top,
 				int dx, int dy) {
 			super.onViewPositionChanged(changedView, left, top, dx, dy);
 			if(changedView==contentView){
-				//手动移动deleteView
-				deleteView.layout(deleteView.getLeft()+dx,deleteView.getTop()+dy,
-						deleteView.getRight()+dx, deleteView.getBottom()+dy);
-			}else if (deleteView==changedView) {
+				//手动移动slipView
+				slipView.layout(slipView.getLeft()+dx,slipView.getTop()+dy,
+						slipView.getRight()+dx, slipView.getBottom()+dy);
+			}else if (slipView==changedView) {
 				//手动移动contentView
 				contentView.layout(contentView.getLeft()+dx,contentView.getTop()+dy,
 						contentView.getRight()+dx, contentView.getBottom()+dy);
@@ -159,32 +164,33 @@ public class SwipeLayout extends FrameLayout {
 				currentState = SwipeState.Close;
 				
 				//回调接口关闭的方法
-				if(listener!=null){
-					listener.onClose(getTag());
+				if(swipeListener!=null){
+					swipeListener.onClose(getTag());
 				}
 				
 				//说明当前的SwipeLayout已经关闭，需要让Manager清空一下
-				SwipeLayoutManager.getInstance().clearCurrentLayout();
-			}else if (contentView.getLeft()==-deleteWidth && currentState!=SwipeState.Open) {
+				SwipeManager.getInstance().clearCurrentLayout();
+			}else if (contentView.getLeft()==-slipWidth && currentState!=SwipeState.Open) {
 				//说明应该将state更改为开
 				currentState = SwipeState.Open;
 
 				//回调接口打开的方法
-				if(listener!=null){
-					listener.onOpen(getTag());
+				if(swipeListener!=null){
+					swipeListener.onOpen(getTag());
 				}
 				//当前的Swipelayout已经打开，需要让Manager记录一下下
-				SwipeLayoutManager.getInstance().setSwipeLayout(SwipeLayout.this);
+				SwipeManager.getInstance().setSwipeLayout(SwipeLayout.this);
 			}
 		}
+		//手指释放时回调此方法
 		@Override
 		public void onViewReleased(View releasedChild, float xvel, float yvel) {
 			super.onViewReleased(releasedChild, xvel, yvel);
-			if(contentView.getLeft()<-deleteWidth/2){
-				//应该打开
+			if(contentView.getLeft()<-slipWidth/2){
+				//如果滑动的内容大于侧滑内容的一半应当打开
 				open();
 			}else {
-				//应该关闭
+				//否则就是关闭
 				close();
 			}
 		}
@@ -193,30 +199,29 @@ public class SwipeLayout extends FrameLayout {
 	 * 打开的方法
 	 */
 	public void open() {
-		viewDragHelper.smoothSlideViewTo(contentView,-deleteWidth,contentView.getTop());
+		mDrag.smoothSlideViewTo(contentView,-slipWidth,contentView.getTop());
 		ViewCompat.postInvalidateOnAnimation(SwipeLayout.this);
 	}
 	/**
 	 * 关闭的方法
 	 */
 	public void close() {
-		viewDragHelper.smoothSlideViewTo(contentView,0,contentView.getTop());
+		mDrag.smoothSlideViewTo(contentView,0,contentView.getTop());
 		ViewCompat.postInvalidateOnAnimation(SwipeLayout.this);
-	};
+	}
 	public void computeScroll() {
-		if(viewDragHelper.continueSettling(true)){
+		if(mDrag.continueSettling(true)){
 			ViewCompat.postInvalidateOnAnimation(this);
 		}
 	}
 
-	private OnSwipeStateChangeListener listener;
-	public void setOnSwipeStateChangeListener(OnSwipeStateChangeListener listener){
-		this.listener = listener;
+	private SwipeListener swipeListener;
+	public void setOnSwipeListener(SwipeListener listener){
+		this.swipeListener = listener;
 	}
 	
-	public interface OnSwipeStateChangeListener{
-		void onOpen(Object tag);
-		void onClose(Object tag);
+	public interface SwipeListener{
+		void onOpen(Object obj);
+		void onClose(Object obj);
 	}
-	
 }

@@ -5,7 +5,7 @@ import lyx.robert.quicksearch.utils.PinYinUtil;
 public class ContactBean implements Comparable<ContactBean>{
 	private String pinyin;
 	public String name;
-	public SortToken sortToken=new SortToken();
+	public PinYinStyle pinYinStyle=new PinYinStyle();
 	//使用成员变量生成构造方法：alt+shift+s->o
 
 
