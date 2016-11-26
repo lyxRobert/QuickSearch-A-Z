@@ -1,0 +1,69 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activities.MainActivity" >
+
+    <ListView
+        android:layout_below="@+id/et_clear"
+        android:id="@+id/lv_contact"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+    </ListView>
+    <TextView
+        android:id="@+id/tv_alphabet"
+        android:layout_below="@+id/et_clear"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:textSize="16dp"
+        android:textColor="@android:color/white"
+        android:background="#B51421"/>
+    <lyx.robert.quicksearch.view.ClearEditText
+        android:id="@+id/et_clear"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:textSize="18dp"
+        android:textColor="@android:color/white"
+        android:background="@drawable/search_bg"
+        android:layout_width="match_parent"
+        android:layout_height="40dp" />
+    <lyx.robert.quicksearch.view.SideLetterBar
+        android:layout_below="@id/tv_alphabet"
+        android:id="@+id/sideLetterBar"
+        android:layout_alignParentRight="true"
+        android:layout_width="30dp"
+        android:layout_height="match_parent"
+        android:background="#14b58d" />
+
+    
+    <RelativeLayout
+        android:id="@+id/rel_notice"
+        android:visibility="invisible"
+        android:layout_alignParentRight="true"
+        android:layout_width="wrap_content"
+        android:layout_marginTop="90dp"
+        android:layout_marginRight="80dp"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/tv_notice"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:padding="10dp"
+            android:textSize="18dp"
+            android:background="#00ff8c"
+            />
+        <ListView
+            android:layout_below="@id/tv_notice"
+            android:background="#FF46285b"
+            android:divider="@null"
+            android:id="@+id/lv_alphabet"
+            android:layout_width="40dp"
+            android:scrollbars="none"
+            android:layout_height="wrap_content">
+        </ListView>
+    </RelativeLayout>
+</RelativeLayout>

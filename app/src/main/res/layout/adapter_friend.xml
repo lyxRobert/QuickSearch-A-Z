@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:textSize="16dp"
+        android:background="#B51421"
+        android:textColor="#fff"
+        android:id="@+id/first_word"
+        android:visibility="gone"
+        android:text="A"/>
+    <lyx.robert.quicksearch.view.SwipeLayout
+        android:id="@+id/swp_delete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16dp"
+        android:id="@+id/name"
+        android:background="#fff"
+        android:textColor="#333"
+        android:padding="10dp"
+        android:text="名称"/>
+        <include layout="@layout/layout_delete"></include>
+    </lyx.robert.quicksearch.view.SwipeLayout>
+</LinearLayout>

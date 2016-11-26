@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal" >
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="match_parent"
+        android:textSize="16dp"
+        android:textColor="#ffffff"
+        android:gravity="center"
+        android:src="@drawable/icon_side_phone"
+        android:background="#9BD33A"
+        android:text="collection"/>
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="match_parent"
+        android:textSize="16dp"
+        android:textColor="#ffffff"
+        android:gravity="center"
+        android:src="@drawable/icon_side_sms"
+        android:background="#95C144"
+        android:text="collection"/>
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="match_parent"
+        android:textSize="16dp"
+        android:textColor="#ffffff"
+        android:gravity="center"
+        android:src="@drawable/icon_side_delete"
+        android:background="#425EC7"
+        android:layout_marginRight="30dp"
+        android:text="collection"/>
+    <!--<TextView android:layout_width="80dp"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:textSize="18sp"-->
+        <!--android:padding="10dp"-->
+        <!--android:textColor="#ffffff"-->
+        <!--android:gravity="center"-->
+        <!--android:background="#aa764a8f"-->
+        <!--android:text="Call"/>-->
+    
+    <!--<TextView android:layout_width="80dp"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:textSize="18sp"-->
+        <!--android:textColor="#ffffff"-->
+        <!--android:id="@+id/tv_delete"-->
+        <!--android:gravity="center"-->
+        <!--android:padding="10dp"-->
+        <!--android:background="#eeff8c00"-->
+        <!--android:layout_marginRight="30dp"-->
+        <!--android:text="Delete"/>-->
+
+</LinearLayout>
